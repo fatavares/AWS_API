@@ -63,26 +63,29 @@ def lambda_handler(event, context):
                 {
                     'Name': 'owner-id',
                     'Values': [
-                        'AWS account number',
+                        'AWS Account number',
                     ]
                 },
             ],
     ):
-
+        print(snap.tags)
         # Set snapshot timezone to GMT-3
         snapDate = snap.start_time.replace(tzinfo=None) - datetime.timedelta(hours=3)
 
-        # Filter snapshots based on Backup Type Tag
-        for i in snap.tags:
-            # (dateType, dateValue, keyValue)
-            if (date.day == 1) and (i['Key'] == 'Type' and i['Value'] == 'Monthly'):
-                cleanSnapshot(snap.id, snapDate, cleanDate)
+        try:
+            # Filter snapshots based on Backup Type Tag
+            for i in snap.tags:
+                # (dateType, dateValue, keyValue)
+                if (date.day == 1) and (i['Key'] == 'Type' and i['Value'] == 'Monthly'):
+                    cleanSnapshot(snap.id, snapDate, cleanDate)
 
-            elif (date.weekday() == 6) and (i['Key'] == 'Type' and i['Value'] == 'Weekly'):
-                cleanSnapshot(snap.id, snapDate, cleanDate)
+                elif (date.weekday() == 6) and (i['Key'] == 'Type' and i['Value'] == 'Weekly'):
+                    cleanSnapshot(snap.id, snapDate, cleanDate)
 
-            elif i['Key'] == 'Type' and i['Value'] == 'Daily':
-                cleanSnapshot(snap.id, snapDate, cleanDate)
+                elif i['Key'] == 'Type' and i['Value'] == 'Daily':
+                    cleanSnapshot(snap.id, snapDate, cleanDate)
+        except:
+            print("[INFO] Snapshot: " + snap.id + " has no Tags ")
 
 # List Volumes that are tagged for Backup (Tag Backup=yes)
 def listBackupVolumes():
