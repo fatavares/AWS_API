@@ -95,11 +95,7 @@ def listBackupVolumes():
     print(volumes)
 
     for vol in volumes:
-        print("VOLUME")
-        print(vol)
         if vol.tags is not None:
-            print("TAGS")
-            print(vol.tags)
             for tag in vol.tags:
                 if tag['Key'].lower() == 'backup' and tag['Value'].lower() == 'yes':
                     backupVol.append(vol.id)

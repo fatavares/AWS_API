@@ -6,62 +6,59 @@ Snapshots that are not related to any Volume can generate an undesirable cost
 
 import boto3
 
-
-ec2 = boto3.client('ec2')
+ec2 = boto3.resource('ec2')
 volumeList = []
 snapshotList = []
 noVolSnapList = []
 
-instance = ec2.describe_instances()
-snapshots = ec2.describe_snapshots(
-    Filters=[
-        {
-            'Name': 'owner-id',
-            'Values': [
-                'AWS account number'
-            ]
-        },
-    ],
-)
 
+# If you do not filter this query will return all snapshots from public AMIs
+snapshots = ec2.snapshots.filter(
+        Filters=[
+            {
+                'Name': 'owner-id',
+                'Values': [
+                    '#AWS Account number'
+                ]
+            },
+        ],
+    )
+
+# Lists all volumes in your account
 def listVol():
-    print(instance)
-    var1 = instance['Reservations']
-    for n in var1:
-        var2 = n['Instances']
-        var3 = var2[0]
-        var4 = var3['BlockDeviceMappings']
-        for m in var4:
-            var5 = m['Ebs']
-            volId = var5['VolumeId']
-            volumeList.append(str(volId))
+    volumes = ec2.volumes.all()
+    for vol in volumes:
+        volumeList.append(str(vol.id))
 
+# Lists all snapshots in your account
 def listSnap():
-    var1 = snapshots['Snapshots']
-    for n in var1:
-        var2 = n['Description']
-        var3 = n['SnapshotId']
-        var4 = n['VolumeId']
-        snapInfo = tuple((var2, var3, var4))
+    for snap in snapshots:
+        snapInfo = tuple((snap.snapshot_id, snap.description, snap.volume_id, snap.volume_size))
         snapshotList.append(snapInfo)
 
+# Lists all stored snapshots that have no relation with your current Volumes
 def noVolSnap():
-    for n in snapshotList:
+    for snap in snapshotList:
         var1 = 0
-        for m in volumeList:
-            if n[2] == m:
+        for vol in volumeList:
+            if snap[2] == vol:
                 var1 = 0
                 break
             else:
                 var1 += 1
         if var1 > 0:
-            noVolSnapList.append(n[2])
+            noVolSnapList.append(tuple((snap[0], snap[1], snap[3])))
 
 listVol()
 listSnap()
-print(volumeList)
-print(snapshotList)
+#print(volumeList)
+#print(snapshotList)
 noVolSnap()
-print(len(noVolSnapList))
-print(noVolSnapList)
 
+print("Snapshots of missing volumes = " + str(len(noVolSnapList)))
+t = 0
+for n in noVolSnapList:
+    print(str(n[0]) + " - " + str(n[1]) + " - " + str(n[2]) + "GiB")
+    t += n[2]
+
+print("Total of Storage - " + str(t) + "GiB")
