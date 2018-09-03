@@ -1,6 +1,8 @@
 """
 Lambda script made to create Snapshots from Volumes Tagged with Backup=yes
 Create Monthly, Weekly and Daily Snapshots.
+Based on the mlapida Script https://gist.github.com/mlapida/770aba3ad3be76f6b31f
+With collaboration of Jean Bezerra
 """
 import boto3
 import datetime
